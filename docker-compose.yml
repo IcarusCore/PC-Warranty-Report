@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  inventory-app:
+    build: .
+    container_name: computer-inventory
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./uploads:/app/uploads
+    environment:
+      - FLASK_ENV=production
+    restart: unless-stopped
+    networks:
+      - proxynet
+
+networks:
+  proxynet:
+    external: true
