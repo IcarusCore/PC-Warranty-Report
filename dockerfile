@@ -16,8 +16,7 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean
 
 # Create non-root user
-RUN useradd -m -u 1000 appuser && \
-    chown -R appuser:appuser /app
+RUN useradd -m -u 1000 appuser
 
 # Copy requirements first (for better caching)
 COPY requirements.txt .
@@ -31,7 +30,7 @@ COPY . .
 
 # Create uploads directory with proper permissions
 RUN mkdir -p uploads && \
-    chown -R appuser:appuser uploads && \
+    chown -R appuser:appuser /app && \
     chmod 755 uploads
 
 # Switch to non-root user
@@ -40,9 +39,9 @@ USER appuser
 # Expose port
 EXPOSE 5003
 
-# Health check
+# Health check using the app's health endpoint
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:5003 || exit 1
+    CMD curl -f http://localhost:5003/health || exit 1
 
 # Run the application
-CMD ["gunicorn", "--bind", "0.0.0.0:5003", "--workers", "2", "--timeout", "300", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5003", "--workers", "1", "--timeout", "300", "--access-logfile", "-", "--error-logfile", "-", "app:app"]
