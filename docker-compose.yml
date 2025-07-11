@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  computer-inventory:
+    build: .
+    container_name: computer-inventory-analytics
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./data:/app/data  # For persistent data if needed
+    environment:
+      - FLASK_ENV=production
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
