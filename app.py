@@ -3,7 +3,7 @@ from flask import Flask, render_template, request, jsonify
 import os
 from werkzeug.utils import secure_filename
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
@@ -11,6 +11,77 @@ app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10MB limit
 
 # Create upload directory if it doesn't exist
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+def generate_demo_data():
+    """Generate curated demo computer inventory data showcasing specific scenarios"""
+    # 5 Dell models only
+    dell_models = [
+        'Dell OptiPlex 7090',
+        'Dell OptiPlex 5090', 
+        'Dell OptiPlex 3090',
+        'Dell OptiPlex 7080',
+        'Dell OptiPlex 5080'
+    ]
+
+    # 10 office locations with specific counts and assigned technicians
+    offices = [
+        {'name': 'New York HQ', 'count': 25, 'technician': 'Mike Johnson'},
+        {'name': 'Chicago Office', 'count': 20, 'technician': 'David Rodriguez'},
+        {'name': 'Los Angeles Branch', 'count': 18, 'technician': 'Sarah Chen'},
+        {'name': 'Houston Center', 'count': 15, 'technician': 'Lisa Thompson'},
+        {'name': 'Boston Office', 'count': 12, 'technician': 'Mike Johnson'},
+        {'name': 'Phoenix Branch', 'count': 12, 'technician': 'Sarah Chen'},
+        {'name': 'Atlanta Office', 'count': 12, 'technician': 'Lisa Thompson'},
+        {'name': 'Seattle Branch', 'count': 12, 'technician': 'Sarah Chen'},
+        {'name': 'Denver Office', 'count': 12, 'technician': 'David Rodriguez'},
+        {'name': 'Miami Branch', 'count': 12, 'technician': 'Lisa Thompson'}
+    ]
+
+    data = []
+    now = datetime.now()
+    pc_counter = 1
+
+    # Define warranty scenarios for demonstration
+    warranty_scenarios = [
+        {'type': 'expired', 'count': 20, 'days_range': (-365, -1)},      # 20 expired
+        {'type': 'expiring_soon', 'count': 25, 'days_range': (1, 30)},   # 25 expiring within 30 days
+        {'type': 'expiring_medium', 'count': 30, 'days_range': (90, 180)}, # 30 expiring in 3-6 months
+        {'type': 'long_term', 'count': 75, 'days_range': (365, 730)}     # 75 expiring 12+ months
+    ]
+
+    # Distribute computers across offices
+    for office in offices:
+        for i in range(office['count']):
+            computer_name = f"PC-{pc_counter:04d}"
+            device_model = dell_models[(pc_counter - 1) % len(dell_models)]  # Rotate through models
+            
+            # Determine warranty scenario based on position for predictable demo
+            if pc_counter <= 20:
+                scenario = warranty_scenarios[0]  # expired
+            elif pc_counter <= 45:
+                scenario = warranty_scenarios[1]  # expiring soon
+            elif pc_counter <= 75:
+                scenario = warranty_scenarios[2]  # expiring medium
+            else:
+                scenario = warranty_scenarios[3]  # long term
+
+            # Generate warranty date within scenario range
+            min_days, max_days = scenario['days_range']
+            # Use pc_counter for consistent but varied distribution
+            days_offset = min_days + ((pc_counter * 7) % (max_days - min_days + 1))
+            warranty_expiry = now + timedelta(days=days_offset)
+
+            data.append({
+                'computerName': computer_name,
+                'deviceModel': device_model,
+                'remoteOffice': office['name'],
+                'warrantyExpiry': warranty_expiry.strftime('%Y-%m-%d'),
+                'techAssigned': office['technician']
+            })
+
+            pc_counter += 1
+
+    return data
 
 @app.route('/')
 def index():
@@ -20,6 +91,21 @@ def index():
 def health():
     """Health check endpoint for Docker"""
     return jsonify({'status': 'healthy', 'timestamp': datetime.now().isoformat()})
+
+@app.route('/demo-data', methods=['GET'])
+def get_demo_data():
+    """Generate and return curated demo data"""
+    try:
+        demo_data = generate_demo_data()
+        
+        return jsonify({
+            'success': True,
+            'data': demo_data,
+            'message': f'Curated demo loaded: {len(demo_data)} computers (5 Dell models, 10 locations, 4 technicians, strategic warranty scenarios)'
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/upload', methods=['POST'])
 def upload_file():

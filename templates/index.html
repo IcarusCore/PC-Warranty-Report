@@ -24,14 +24,20 @@
             <div class="upload-area" id="dropArea">
                 <p>Drag and drop your Excel file here or click to upload</p>
                 <input type="file" id="fileInput" accept=".xlsx" style="display: none;">
-                <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
-                    <i class="fas fa-upload"></i> Select File
-                </button>
+                <div class="upload-buttons">
+                    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                        <i class="fas fa-upload"></i> Select File
+                    </button>
+                    <button class="demo-btn" onclick="loadDemoData()">
+                        <i class="fas fa-play"></i> Run Demo
+                    </button>
+                </div>
             </div>
             <div class="upload-info">
                 <strong>Supported Format:</strong> Excel (.xlsx)<br>
                 <strong>Expected columns:</strong> Computer Name, Device Model, Remote Office, Warranty Expiry Date, Tech Assigned<br>
-                <strong>File Size Limit:</strong> 25MB
+                <strong>File Size Limit:</strong> 25MB<br>
+                <strong>Demo:</strong> Click "Run Demo" to see the app with 150 curated PCs (5 Dell models, 10 locations, 4 technicians, strategic warranty scenarios)
             </div>
             <div id="status" class="status"></div>
             <div id="loading" class="loading">
@@ -230,6 +236,7 @@
     <script src="{{ url_for('static', filename='js/analytics.js') }}"></script>
     <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
     <script src="{{ url_for('static', filename='js/export.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/demo.js') }}"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
