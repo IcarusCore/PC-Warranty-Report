@@ -1,19 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <title>{{ title }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
-
-<body>
-    <div class="App">
-        <header class="App-header">
-            <img src="{{ url_for('static', filename='Octocat.png') }}" class="App-logo" alt="logo" />
-            <p>
-                GitHub Codespaces <span class="heart">♥️</span> Flask
-            </p>
-            <p class="small">
-                Edit <code>templates/index.html</code> and refresh to see your changes!
-            </p>
-        </header>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Computer Inventory Analytics</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body data-theme="light">
+    <div class="theme-toggle" onclick="window.InventoryApp.toggleTheme()">
+        <i class="fas fa-moon" id="theme-icon"></i>
     </div>
-</body>
 
+    <div class="container">
+        <div class="header">
+            <h1>Computer Inventory Analytics</h1>
+            <p>Data visualization and warranty management system</p>
+        </div>
+        
+        <div class="upload-section">
+            <div class="upload-area" id="dropArea">
+                <p>Drag and drop your Excel file here or click to upload</p>
+                <input type="file" id="fileInput" accept=".xlsx" style="display: none;">
+                <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                    <i class="fas fa-upload"></i> Select File
+                </button>
+            </div>
+            <div class="upload-info">
+                <strong>Supported Format:</strong> Excel (.xlsx)<br>
+                <strong>Expected columns:</strong> Computer Name, Device Model, Remote Office, Warranty Expiry Date, Tech Assigned<br>
+                <strong>File Size Limit:</strong> 25MB
+            </div>
+            <div id="status" class="status"></div>
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                Processing your data and generating visualizations...
+            </div>
+        </div>
+        
+        <div id="exportSection" class="export-section">
+            <div class="export-buttons">
+                <button class="export-btn" onclick="window.InventoryApp.exportAllCharts()">
+                    <i class="fas fa-chart-bar"></i> Export All Charts (PDF)
+                </button>
+                <button class="export-btn" onclick="window.InventoryApp.exportDataTable()">
+                    <i class="fas fa-file-csv"></i> Export Data (CSV)
+                </button>
+            </div>
+        </div>
+        
+        <div id="mainContent" class="main-content">
+            <div id="aiInsights" class="ai-insights-section">
+                <div class="ai-insights-header">
+                    <i class="fas fa-brain"></i>
+                    <div class="ai-insights-title">Insights</div>
+                </div>
+                <div id="aiInsightsGrid" class="ai-insights-grid"></div>
+            </div>
+
+            <div class="data-overview">
+                <div class="overview-title">Data Overview</div>
+                <div class="overview-subtitle">Summary of your computer inventory data</div>
+                <div id="summaryGrid" class="summary-grid"></div>
+            </div>
+            
+            <div class="charts-container">
+                <h2 class="section-title">Interactive Visualizations</h2>
+                
+                <div class="chart-grid">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div>
+                                <div class="chart-title">Device Model Distribution</div>
+                                <div class="chart-subtitle">Breakdown of computer models across your inventory (click to filter)</div>
+                            </div>
+                            <div class="chart-controls">
+                                <button class="chart-toggle-btn active" onclick="window.InventoryApp.toggleChartType('deviceModelChart', 'doughnut', this)">
+                                    <i class="fas fa-circle-notch"></i> Doughnut
+                                </button>
+                                <button class="chart-toggle-btn" onclick="window.InventoryApp.toggleChartType('deviceModelChart', 'bar', this)">
+                                    <i class="fas fa-chart-bar"></i> Bar
+                                </button>
+                                <button class="chart-toggle-btn" onclick="window.InventoryApp.exportChart('deviceModelChart')">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="deviceModelChart"></canvas>
+                        </div>
+                        <div class="chart-info" id="deviceModelInfo"></div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div>
+                                <div class="chart-title">Remote Office Distribution</div>
+                                <div class="chart-subtitle">Device count by office location (click to filter)</div>
+                            </div>
+                            <div class="chart-controls">
+                                <button class="chart-toggle-btn active" onclick="window.InventoryApp.toggleChartType('remoteOfficeChart', 'bar', this)">
+                                    <i class="fas fa-chart-bar"></i> Bar
+                                </button>
+                                <button class="chart-toggle-btn" onclick="window.InventoryApp.toggleChartType('remoteOfficeChart', 'line', this)">
+                                    <i class="fas fa-chart-line"></i> Line
+                                </button>
+                                <button class="chart-toggle-btn" onclick="window.InventoryApp.exportChart('remoteOfficeChart')">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="remoteOfficeChart"></canvas>
+                        </div>
+                        <div class="chart-info" id="remoteOfficeInfo"></div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div>
+                                <div class="chart-title">Warranty Status Overview</div>
+                                <div class="chart-subtitle">Current warranty status distribution (click to filter)</div>
+                            </div>
+                            <div class="chart-controls">
+                                <button class="chart-toggle-btn active" onclick="window.InventoryApp.toggleChartType('warrantyStatusChart', 'pie', this)">
+                                    <i class="fas fa-chart-pie"></i> Pie
+                                </button>
+                                <button class="chart-toggle-btn" onclick="window.InventoryApp.toggleChartType('warrantyStatusChart', 'doughnut', this)">
+                                    <i class="fas fa-circle-notch"></i> Doughnut
+                                </button>
+                                <button class="chart-toggle-btn" onclick="window.InventoryApp.exportChart('warrantyStatusChart')">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="warrantyStatusChart"></canvas>
+                        </div>
+                        <div class="chart-info" id="warrantyStatusInfo"></div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div>
+                                <div class="chart-title">Warranty Expiry Timeline</div>
+                                <div class="chart-subtitle">Monthly warranty expiration schedule</div>
+                            </div>
+                            <div class="chart-controls">
+                                <button class="chart-toggle-btn active" onclick="window.InventoryApp.toggleChartType('warrantyTimelineChart', 'line', this)">
+                                    <i class="fas fa-chart-line"></i> Line
+                                </button>
+                                <button class="chart-toggle-btn" onclick="window.InventoryApp.toggleChartType('warrantyTimelineChart', 'bar', this)">
+                                    <i class="fas fa-chart-bar"></i> Bar
+                                </button>
+                                <button class="chart-toggle-btn" onclick="window.InventoryApp.exportChart('warrantyTimelineChart')">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="warrantyTimelineChart"></canvas>
+                        </div>
+                        <div class="chart-info" id="warrantyTimelineInfo"></div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div>
+                                <div class="chart-title">Technician Assignments</div>
+                                <div class="chart-subtitle">Device distribution by assigned technician (click to filter)</div>
+                            </div>
+                            <div class="chart-controls">
+                                <button class="chart-toggle-btn active" onclick="window.InventoryApp.toggleChartType('techAssignedChart', 'doughnut', this)">
+                                    <i class="fas fa-circle-notch"></i> Doughnut
+                                </button>
+                                <button class="chart-toggle-btn" onclick="window.InventoryApp.toggleChartType('techAssignedChart', 'bar', this)">
+                                    <i class="fas fa-chart-bar"></i> Bar
+                                </button>
+                                <button class="chart-toggle-btn" onclick="window.InventoryApp.exportChart('techAssignedChart')">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="techAssignedChart"></canvas>
+                        </div>
+                        <div class="chart-info" id="techAssignedInfo"></div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div>
+                                <div class="chart-title">Technician Performance</div>
+                                <div class="chart-subtitle">Warranty status breakdown by technician for accountability</div>
+                            </div>
+                            <div class="chart-controls">
+                                <button class="chart-toggle-btn active" onclick="window.InventoryApp.toggleChartType('techPerformanceChart', 'bar', this)">
+                                    <i class="fas fa-chart-bar"></i> Bar
+                                </button>
+                                <button class="chart-toggle-btn" onclick="window.InventoryApp.toggleChartType('techPerformanceChart', 'line', this)">
+                                    <i class="fas fa-chart-line"></i> Line
+                                </button>
+                                <button class="chart-toggle-btn" onclick="window.InventoryApp.exportChart('techPerformanceChart')">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="techPerformanceChart"></canvas>
+                        </div>
+                        <div class="chart-info" id="techPerformanceInfo"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tooltip" id="tooltip"></div>
+
+    <!-- Load JavaScript files in correct order -->
+    <script src="{{ url_for('static', filename='js/config.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/utils.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/modals.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/filters.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/fileUpload.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/analytics.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/export.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
 </html>

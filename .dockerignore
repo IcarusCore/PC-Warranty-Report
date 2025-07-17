@@ -1,0 +1,105 @@
+# Git and version control
+.git
+.gitignore
+.gitattributes
+
+# Development files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.cache
+.mypy_cache
+.dmypy.json
+dmypy.json
+coverage.xml
+*.cover
+.hypothesis/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Node.js (if you have any)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Uploads and data (keep structure but not content)
+uploads/*
+!uploads/.gitkeep
+data/*
+!data/.gitkeep
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# GitHub
+.github/
+
+# Templates (optional - only if you don't want them in image)
+templates/computer-inventory-analytics.xml
+
+# Log files
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+
+# Backup files
+*.bak
+*.backup
+
+# IDE files
+*.sublime-project
+*.sublime-workspace
+
+# Local configuration overrides
+config.local.py
+settings.local.py
