@@ -615,3 +615,76 @@ body {
         height: 300px;
     }
 }
+/* Add these styles to your existing styles.css file */
+
+/* Update upload area styles */
+.upload-area p {
+    color: var(--text-secondary);
+    font-size: 1.1em;
+    margin-bottom: 20px;
+}
+
+/* New upload buttons container */
+.upload-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* Update existing upload button */
+.upload-btn, .demo-btn {
+    padding: 12px 24px;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9em;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.upload-btn {
+    background: #3b82f6;
+}
+
+.upload-btn:hover {
+    background: #2563eb;
+}
+
+/* New demo button styles */
+.demo-btn {
+    background: #16a34a;
+    border: 2px solid transparent;
+}
+
+.demo-btn:hover {
+    background: #15803d;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(22, 163, 74, 0.3);
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .demo-btn {
+    background: #16a34a;
+}
+
+[data-theme="dark"] .demo-btn:hover {
+    background: #15803d;
+}
+
+/* Responsive styles for buttons */
+@media (max-width: 768px) {
+    .upload-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .upload-btn, .demo-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}

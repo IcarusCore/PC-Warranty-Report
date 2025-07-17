@@ -1,6 +1,10 @@
 // main.js - Main Application Coordination
 
 // Global functions for HTML onclick events
+function loadDemoData() {
+    window.InventoryDemo.loadDemoData();
+}
+
 function toggleTheme() {
     window.InventoryTheme.toggleTheme();
 }
@@ -40,6 +44,7 @@ window.InventoryApp = {
     exportAllCharts: exportAllCharts,
     exportChart: exportChart,
     exportDataTable: exportDataTable,
+    loadDemoData: loadDemoData,
     getCurrentData: () => window.InventoryFileUpload.getCurrentData(),
     getChartInstances: () => window.InventoryCharts.chartInstances,
     showOfficeDetails: showOfficeDetails,
@@ -47,7 +52,7 @@ window.InventoryApp = {
     
     // Initialize application
     init: function() {
-        console.log('Computer Inventory Analytics with Tech Assignment loaded');
+        console.log('Computer Inventory Analytics with Demo loaded');
         
         // Initialize all modules
         window.InventoryTheme.initTheme();
@@ -83,6 +88,12 @@ window.InventoryApp = {
                     window.InventoryExport.exportAllCharts();
                 }
             }
+
+            // Demo shortcut
+            if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+                e.preventDefault();
+                window.InventoryDemo.loadDemoData();
+            }
         });
 
         // Error handling
@@ -104,4 +115,20 @@ window.InventoryApp = {
 // Initialize application when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
     window.InventoryApp.init();
+    
+    // Console welcome message with demo info
+    console.log(`
+🎯 Computer Inventory Analytics
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ Enhanced features loaded successfully
+🔧 Keyboard shortcuts:
+   • Ctrl+Shift+D: Load demo data
+🎯 Demo Features:
+   • 150 computers (PC-0001 to PC-0150)
+   • 5 Dell models only
+   • 10 strategic office locations
+   • 4 technicians assigned
+   • Strategic warranty scenarios
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+`);
 });

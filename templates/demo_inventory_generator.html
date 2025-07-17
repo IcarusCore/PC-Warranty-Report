@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Computer Inventory Demo Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8f9fc;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #1e3c72;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .info-card {
+            background: #e1effe;
+            border: 1px solid #3b82f6;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .info-card h3 {
+            color: #1e40af;
+            margin-bottom: 15px;
+        }
+        .generate-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: #16a34a;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-bottom: 20px;
+        }
+        .generate-btn:hover {
+            background: #15803d;
+        }
+        .preview {
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        th, td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        th {
+            background: #f8f9fc;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        .expired { background-color: #fef2f2; }
+        .expiring-soon { background-color: #fef3c7; }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        .status.success {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🖥️ Computer Inventory Demo Generator</h1>
+        
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>📊 Demo Specifications</h3>
+                <ul>
+                    <li><strong>150 computers:</strong> PC-0001 to PC-0150</li>
+                    <li><strong>5 Dell models:</strong> OptiPlex series only</li>
+                    <li><strong>10 office locations:</strong> Strategic distribution</li>
+                    <li><strong>4 technicians:</strong> Regional assignments</li>
+                </ul>
+            </div>
+            
+            <div class="info-card">
+                <h3>⚠️ Strategic Warranty Scenarios</h3>
+                <ul>
+                    <li><strong>20 PCs:</strong> Expired warranties (red alerts)</li>
+                    <li><strong>25 PCs:</strong> Expiring within 30 days</li>
+                    <li><strong>30 PCs:</strong> Expiring in 3-6 months</li>
+                    <li><strong>75 PCs:</strong> 12+ months remaining</li>
+                </ul>
+            </div>
+            
+            <div class="info-card">
+                <h3>🏢 Office Distribution</h3>
+                <ul>
+                    <li>New York HQ (25 PCs)</li>
+                    <li>Chicago Office (20 PCs)</li>
+                    <li>Los Angeles Branch (18 PCs)</li>
+                    <li>Houston Center (15 PCs)</li>
+                    <li>6 smaller locations (12 PCs each)</li>
+                </ul>
+            </div>
+            
+            <div class="info-card">
+                <h3>👨‍💻 Technical Support</h3>
+                <ul>
+                    <li><strong>Mike Johnson:</strong> East Coast (37 PCs)</li>
+                    <li><strong>Sarah Chen:</strong> West Coast (42 PCs)</li>
+                    <li><strong>David Rodriguez:</strong> Central (32 PCs)</li>
+                    <li><strong>Lisa Thompson:</strong> South (39 PCs)</li>
+                </ul>
+            </div>
+        </div>
+
+        <button class="generate-btn" onclick="generateDemo()" id="generateBtn">
+            🎯 Generate Perfect Demo Dataset for Analytics App
+        </button>
+
+        <div id="status" class="status" style="display: none;"></div>
+        
+        <div class="preview" id="preview" style="display: none;">
+            <table id="previewTable">
+                <thead>
+                    <tr>
+                        <th>Computer Name</th>
+                        <th>Device Model</th>
+                        <th>Remote Office</th>
+                        <th>Tech Assigned</th>
+                        <th>Warranty Expiry Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="previewBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function generateDemo() {
+            const btn = document.getElementById('generateBtn');
+            btn.disabled = true;
+            btn.textContent = '🔄 Generating perfect demo dataset...';
+
+            setTimeout(() => {
+                try {
+                    const data = createDemoData();
+                    
+                    // Show preview
+                    showPreview(data);
+                    
+                    // Create Excel file
+                    const ws = XLSX.utils.json_to_sheet(data);
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, "Computer Inventory Demo");
+
+                    // Auto-size columns
+                    const colWidths = [
+                        { wch: 15 }, // Computer Name
+                        { wch: 25 }, // Device Model
+                        { wch: 25 }, // Remote Office
+                        { wch: 20 }, // Tech Assigned
+                        { wch: 18 }  // Warranty Expiry Date
+                    ];
+                    ws['!cols'] = colWidths;
+
+                    // Download file
+                    XLSX.writeFile(wb, 'computer_inventory_demo_150_devices.xlsx');
+                    
+                    showStatus('✅ Perfect demo dataset generated! Upload this file to your analytics app to see all features in action with strategic warranty scenarios.', 'success');
+                    
+                } catch (error) {
+                    console.error('Error generating file:', error);
+                    showStatus('❌ Error generating file. Please try again.', 'error');
+                }
+
+                btn.disabled = false;
+                btn.textContent = '🎯 Generate Another Demo Dataset';
+            }, 800);
+        }
+
+        function createDemoData() {
+            const dellModels = [
+                'Dell OptiPlex 7090',
+                'Dell OptiPlex 5090', 
+                'Dell OptiPlex 3090',
+                'Dell OptiPlex 7080',
+                'Dell OptiPlex 5080'
+            ];
+
+            const offices = [
+                { name: 'New York HQ', count: 25, technician: 'Mike Johnson' },
+                { name: 'Chicago Office', count: 20, technician: 'David Rodriguez' },
+                { name: 'Los Angeles Branch', count: 18, technician: 'Sarah Chen' },
+                { name: 'Houston Center', count: 15, technician: 'Lisa Thompson' },
+                { name: 'Boston Office', count: 12, technician: 'Mike Johnson' },
+                { name: 'Phoenix Branch', count: 12, technician: 'Sarah Chen' },
+                { name: 'Atlanta Office', count: 12, technician: 'Lisa Thompson' },
+                { name: 'Seattle Branch', count: 12, technician: 'Sarah Chen' },
+                { name: 'Denver Office', count: 12, technician: 'David Rodriguez' },
+                { name: 'Miami Branch', count: 12, technician: 'Lisa Thompson' }
+            ];
+
+            const data = [];
+            const now = new Date();
+            let pcCounter = 1;
+
+            // Define warranty scenarios for strategic demonstration
+            const warrantyScenarios = [
+                { type: 'expired', count: 20, daysRange: [-365, -1] },
+                { type: 'expiring_soon', count: 25, daysRange: [1, 30] },
+                { type: 'expiring_medium', count: 30, daysRange: [90, 180] },
+                { type: 'long_term', count: 75, daysRange: [365, 730] }
+            ];
+
+            // Distribute computers across offices with strategic warranty dates
+            for (const office of offices) {
+                for (let i = 0; i < office.count; i++) {
+                    const computerName = `PC-${pcCounter.toString().padStart(4, '0')}`;
+                    const deviceModel = dellModels[(pcCounter - 1) % dellModels.length];
+                    
+                    // Determine warranty scenario based on position for predictable demo
+                    let scenario;
+                    if (pcCounter <= 20) scenario = warrantyScenarios[0]; // expired
+                    else if (pcCounter <= 45) scenario = warrantyScenarios[1]; // expiring soon
+                    else if (pcCounter <= 75) scenario = warrantyScenarios[2]; // expiring medium
+                    else scenario = warrantyScenarios[3]; // long term
+
+                    // Generate warranty date within scenario range
+                    const minDays = scenario.daysRange[0];
+                    const maxDays = scenario.daysRange[1];
+                    // Use pcCounter for consistent but varied distribution
+                    const daysOffset = minDays + ((pcCounter * 7) % (maxDays - minDays + 1));
+                    const warrantyDate = new Date(now.getTime() + (daysOffset * 24 * 60 * 60 * 1000));
+
+                    data.push({
+                        'Computer Name': computerName,
+                        'Device Model': deviceModel,
+                        'Remote Office': office.name,
+                        'Tech Assigned': office.technician,
+                        'Warranty Expiry Date': warrantyDate.toISOString().split('T')[0]
+                    });
+
+                    pcCounter++;
+                }
+            }
+
+            return data;
+        }
+
+        function showPreview(data) {
+            const previewBody = document.getElementById('previewBody');
+            previewBody.innerHTML = '';
+            const now = new Date();
+
+            // Show first 20 rows for preview
+            data.slice(0, 20).forEach(row => {
+                const warrantyDate = new Date(row['Warranty Expiry Date']);
+                const daysUntilExpiry = Math.ceil((warrantyDate - now) / (1000 * 60 * 60 * 24));
+                
+                let status = 'Active';
+                let rowClass = '';
+                
+                if (daysUntilExpiry < 0) {
+                    status = 'EXPIRED';
+                    rowClass = 'expired';
+                } else if (daysUntilExpiry <= 30) {
+                    status = 'Expiring Soon';
+                    rowClass = 'expiring-soon';
+                } else if (daysUntilExpiry <= 180) {
+                    status = 'Expiring Medium Term';
+                }
+
+                const tr = document.createElement('tr');
+                tr.className = rowClass;
+                tr.innerHTML = `
+                    <td>${row['Computer Name']}</td>
+                    <td>${row['Device Model']}</td>
+                    <td>${row['Remote Office']}</td>
+                    <td>${row['Tech Assigned']}</td>
+                    <td>${row['Warranty Expiry Date']}</td>
+                    <td><strong>${status}</strong></td>
+                `;
+                previewBody.appendChild(tr);
+            });
+
+            document.getElementById('preview').style.display = 'block';
+        }
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
